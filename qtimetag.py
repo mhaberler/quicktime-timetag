@@ -18,6 +18,7 @@ import os
 
 ext = ".MOV"
 
+
 def starttime(vfn: str):
     try:
         probe = ffmpeg.probe(vfn)
@@ -26,8 +27,7 @@ def starttime(vfn: str):
         return (None, None)
 
     video_stream = next(
-        (stream for stream in probe["streams"]
-         if stream["codec_type"] == "video"), None
+        (stream for stream in probe["streams"] if stream["codec_type"] == "video"), None
     )
     if video_stream is None:
         logger.error(f"{vfn}: No video stream found")
@@ -49,17 +49,23 @@ def main(args):
     for fn in args.arg:
         recorded, ts = starttime(fn)
         path, filename = os.path.split(fn)
-        if ts:  # IMG_329820231001_162959.MOV
-            dest =  path + recorded.strftime("/%Y%m%d_%H%M%S_") + filename
+        if ts:
+            dest = path + recorded.strftime("/%Y%m%d_%H%M%S_") + filename
         kwa = {}
         if args.start:
             kwa["ss"] = args.start
         if args.end:
             kwa["to"] = args.end
+        if args.offset:
+            hms = f"%{{pts:hms:{args.offset}}}\n\n "
+        else:
+            hms = "%{pts:hms}\n\n "
+
+        hms += recorded.strftime("%m/%d/%Y %H:%M:%S")
         in1 = ffmpeg.input(fn, **kwa)
         v1 = ffmpeg.drawtext(
             in1["v"],
-            "%{pts:hms}\n\n " + recorded.strftime("%m/%d/%Y %H:%M:%S"),
+            hms,
             x=50,
             y="h-150",
             escape_text=False,
@@ -79,10 +85,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("arg", nargs="+", help=".MOV files to tag")
-    parser.add_argument("-s", "--start", action="store",
-                        dest="start", default=None)
-    parser.add_argument("-e", "--end", action="store",
-                        dest="end", default=None)
-
+    parser.add_argument("-s", "--start", action="store", dest="start", default=None)
+    parser.add_argument("-e", "--end", action="store", dest="end", default=None)
+    parser.add_argument(
+        "-o", "--offset", action="store", dest="offset", type=float, default=None
+    )
     args = parser.parse_args()
     main(args)
