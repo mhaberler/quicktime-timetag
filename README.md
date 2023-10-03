@@ -4,9 +4,9 @@ I had the need to tag iPhone movies with start time and precise time offset to c
 
 one off, unpolished but works
 
-## installation
+## requirements
 
-`pip install logzero ffmpeg-python`
+`pip install logzero ffmpeg-python  python-dateutil`
 
 ## example invocation
 `qtimetag.py --start 00:00:01 --end 00:00:2 IMG_3298.MOV`

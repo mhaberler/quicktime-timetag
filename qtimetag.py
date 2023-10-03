@@ -7,7 +7,7 @@ insert time-from-start in millisecond resolution and recording time
 example: qtimetag.py --start 00:00:01 --end 00:00:2 /Users/mah/Downloads/IMG_3298.MOV
 this will create /Users/mah/Downloads/IMG_3298_ts.MOV
 
-pip install logzero ffmpeg-python 
+pip install logzero ffmpeg-python  python-dateutil 
 """
 
 import argparse
@@ -16,8 +16,7 @@ import ffmpeg
 from dateutil import parser as dateparser
 import os
 
-suffix = "_ts"
-
+ext = ".MOV"
 
 def starttime(vfn: str):
     try:
@@ -49,8 +48,9 @@ def starttime(vfn: str):
 def main(args):
     for fn in args.arg:
         recorded, ts = starttime(fn)
-        if ts:
-            dest = os.path.splitext(fn)[0] + f"{suffix}.mov"
+        path, filename = os.path.split(fn)
+        if ts:  # IMG_329820231001_162959.MOV
+            dest =  path + recorded.strftime("/%Y%m%d_%H%M%S_") + filename
         kwa = {}
         if args.start:
             kwa["ss"] = args.start
